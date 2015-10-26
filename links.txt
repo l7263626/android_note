@@ -1,0 +1,5 @@
+支援媒體格式
+http://developer.android.com/guide/appendix/media-formats.html
+
+可用支援
+http://developer.android.com/guide/topics/resources/available-resources.html
