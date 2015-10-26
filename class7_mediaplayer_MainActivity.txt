@@ -1,0 +1,257 @@
+package com.hui.class7_mediaplayer;
+
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
+import android.net.Uri;
+import android.os.Environment;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
+import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import java.io.File;
+import java.io.IOException;
+
+public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener,MediaPlayer.OnCompletionListener{
+    SurfaceView surfaceView;
+    SurfaceHolder sHolder;
+    Button btnPlay,btnPause,btnStop;
+    SeekBar seekBar;
+    TextView tvshow;
+
+    MediaPlayer mp;
+
+    Button btnRec,btnStopRec;
+    MediaRecorder mr;
+    File path;
+    String strPath;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        path=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+        File file=new File(path,"myRec.3gp");
+        strPath=file.toString();
+        findviews();
+    }
+
+    void findviews(){
+        surfaceView=(SurfaceView)findViewById(R.id.surfaceView);
+        sHolder=surfaceView.getHolder();
+        sHolder.addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder surfaceHolder) {
+
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+
+            }
+        });
+        btnPlay=(Button)findViewById(R.id.button);
+        btnPlay.setOnClickListener(btnsClick);
+        btnPause=(Button)findViewById(R.id.button2);
+        btnPause.setOnClickListener(btnsClick);
+        btnStop=(Button)findViewById(R.id.button3);
+        btnStop.setOnClickListener(btnsClick);
+        seekBar=(SeekBar)findViewById(R.id.seekBar);
+        seekBar.setOnSeekBarChangeListener(seekBarChangeListener);
+        tvshow=(TextView)findViewById(R.id.textView);
+        btnRec=(Button)findViewById(R.id.button4);
+        btnRec.setOnClickListener(btnRecClick);
+        btnStopRec=(Button)findViewById(R.id.button5);
+        btnStopRec.setOnClickListener(btnRecClick);
+    }
+
+    View.OnClickListener btnsClick=new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            switch (view.getId()){
+                case R.id.button:
+//                    staticCreate();
+                    callMediaPlayer();
+                    break;
+                case R.id.button2:
+                    mp.pause();
+                    break;
+                case R.id.button3:
+                    mp.stop();
+                    mp.release();
+                    mp=null;
+                    break;
+            }
+
+        }
+    };
+
+    void staticCreate(){
+        if(mp==null) {
+            mp = MediaPlayer.create(this, R.raw.ring);
+            mp.start();
+        }
+        if(!mp.isPlaying()){
+            mp.start();
+        }
+
+    }
+
+    void callMediaPlayer(){
+        mp=new MediaPlayer();
+//        File path= Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+//        path.toString()
+
+//        String path="android.resource://com.hui.class7_mediaplayer/"+R.raw.flourish;
+//        String path="android.resource://com.hui.class7_mediaplayer/"+R.raw.littlemonster;
+
+        try {
+//            mp.setDataSource(path); //用String的路徑要是World Readable的路徑才可以
+            mp.setDataSource(this, Uri.parse(strPath));
+            mp.prepareAsync();
+            mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mp.setDisplay(sHolder);
+            mp.setLooping(false);
+        } catch (IOException e) {
+            Log.d("mediaplay","IOException");
+            e.printStackTrace();
+        }
+        mp.setOnPreparedListener(this);
+        mp.setOnCompletionListener(this);
+
+    }
+
+    SeekBar.OnSeekBarChangeListener seekBarChangeListener=new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            if(fromUser) {
+                mp.seekTo(progress);
+            }
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+
+        }
+    };
+
+
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+            Log.d("mediaplay","prepared");
+            int total = mp.getDuration();
+            seekBar.setMax(total);
+            tvshow.setText(String.valueOf(total / 1000));
+            mp.start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                showSongTimeUseThread();
+            }
+        }).start();
+
+        /*要預備下一首歌要建立另一個MediaPlayer物件
+                 預備的時間點要在前一首完成之前預備
+                 預備的Medaiplayer要先到prepare()的狀態
+                 才能呼叫mp.setNextMediaPlayer(mpNext);
+             */
+
+        MediaPlayer mpNext = new MediaPlayer();
+//        String path = "android.resource://com.hui.class7_mediaplayer/" + R.raw.ring;
+        try {
+            Log.d("mediaplay","prepared_next");
+            mpNext.setDataSource(this, Uri.parse(strPath));
+            mpNext.prepare();
+            mp.setNextMediaPlayer(mpNext);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void showSongTimeUseThread(){
+        while (mp!=null &&mp.isPlaying()){
+            if(mp==null){
+                break;
+            }
+            final int current=mp.getCurrentPosition();
+
+            tvshow.post(new Runnable() {
+                @Override
+                public void run() {
+                    if(mp==null){
+                        return;
+                    }
+                    tvshow.setText(""+current/1000+"/"+mp.getDuration()/1000);
+                }
+            });
+            seekBar.post(new Runnable() {
+                @Override
+                public void run() {
+                    seekBar.setProgress(current);
+                }
+            });
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    //======== MediaRecorder的部份==============
+    View.OnClickListener btnRecClick=new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            switch (view.getId()){
+                case R.id.button4:
+                    mr=new MediaRecorder();
+                    mr.setAudioSource(MediaRecorder.AudioSource.MIC);
+                    mr.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                    mr.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB);
+//                    File path=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+//                    File file=new File(path,"myRec.3gp");
+                    mr.setOutputFile(strPath);
+                    try {
+                        mr.prepare();
+                        mr.start();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    break;
+                case R.id.button5:
+                    mr.stop();
+                    mr.release();
+                    mr=null;
+                    break;
+            }
+
+        }
+    };
+
+
+}
