@@ -16,10 +16,11 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
     Button btn1;
-    TextView tvCount;
+    TextView tvCount,tvScore;
     SoundPool soundPool;
     int soundId1,soundId2;
-    ImageView image,image2,image3;
+    ImageView image,image2,image3,image4,image5,image6,image7,image8,image9;
+    ImageView[] images;
     int[] moles={R.drawable.hole,
             R.drawable.mole1,
             R.drawable.mole2,
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     boolean isGaming=true;
+    int score;
 
 //    Handler handler;
 
@@ -48,6 +50,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void findviews(){
+        tvCount=(TextView)findViewById(R.id.textView);
+        tvScore=(TextView)findViewById(R.id.textView2);
+        image=(ImageView)findViewById(R.id.imageView);
+        image2=(ImageView)findViewById(R.id.imageView2);
+        image3=(ImageView)findViewById(R.id.imageView3);
+        image4=(ImageView)findViewById(R.id.imageView4);
+        image5=(ImageView)findViewById(R.id.imageView5);
+        image6=(ImageView)findViewById(R.id.imageView6);
+        image7=(ImageView)findViewById(R.id.imageView7);
+        image8=(ImageView)findViewById(R.id.imageView8);
+        image9=(ImageView)findViewById(R.id.imageView9);
+        ImageView[] ivs={image,image2,image3,image4,image5,image6,image7,image8,image9};
+        images=ivs;
         btn1=(Button)findViewById(R.id.button);
         btn1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,11 +71,6 @@ public class MainActivity extends AppCompatActivity {
                 countDownTimer.start();
             }
         });
-
-        image=(ImageView)findViewById(R.id.imageView);
-        image2=(ImageView)findViewById(R.id.imageView2);
-        image3=(ImageView)findViewById(R.id.imageView3);
-        tvCount=(TextView)findViewById(R.id.textView);
     }
 
 
@@ -77,13 +87,15 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        },300);
         isGaming=true;
-        Moles mouse1 = new Moles(image, 200);
-        Moles mouse2 = new Moles(image2, 250);
-        Moles mouse3 = new Moles(image3, 180);
 
-        new Thread(mouse1).start();
-        new Thread(mouse2).start();
-        new Thread(mouse3).start();
+        new Thread(new Moles(images[(int)(Math.random()*9)],250)).start();
+        new Thread(new Moles(images[(int)(Math.random()*9)],250)).start();
+        new Thread(new Moles(images[(int)(Math.random()*9)],250)).start();
+        new Thread(new Moles(images[(int)(Math.random()*9)],250)).start();
+    }
+
+    void selectHole(){
+        new Thread(new Moles(images[(int)(Math.random()*9)],250)).start();
     }
 
     class Moles implements Runnable,View.OnClickListener{
@@ -99,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            while (isGaming) {
+            while (moleIdx<4) {
                 if(moleIdx>=moles.length){
                     moleIdx=0;
                 }
@@ -116,6 +128,15 @@ public class MainActivity extends AppCompatActivity {
                 }
                 ++moleIdx;
             }
+            image.post(new Runnable() {
+                @Override
+                public void run() {
+                    image.setImageResource(R.drawable.hole);
+                }
+            });
+            if(isGaming) {
+                selectHole();
+            }
 
         }
 
@@ -125,13 +146,23 @@ public class MainActivity extends AppCompatActivity {
                 soundPool.play(soundId1,1.0f,1.0f,0,0,1.0f);
             }
             if(moleIdx==2 || moleIdx==3){
-                soundPool.play(soundId2,1.0f,1.0f,0,0,1.0f);
+                soundPool.play(soundId2, 1.0f, 1.0f, 0, 0, 1.0f);
                 image.post(new Runnable() {
                     @Override
                     public void run() {
                         image.setImageResource(R.drawable.mole4);
                     }
                 });
+                ++score;
+                tvScore.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        tvScore.setText(String.valueOf(score));
+                    }
+                });
+                if(isGaming) {
+                    selectHole();
+                }
             }
 
         }
@@ -151,25 +182,5 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 }
