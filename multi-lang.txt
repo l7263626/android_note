@@ -1,0 +1,8 @@
+多語系項目是利用手機設定的預設語言，
+對應到預設資料夾名稱加語言代碼。
+例如預設有drawable資料夾用來放置圖檔，
+若增加drawable-en則是要給預設語言為英語的手機使用。
+
+上述-en術語為修飾符號。
+除了用在多語系之外，還有其他修飾符號
+可見: https://developer.android.com/guide/topics/resources/providing-resources.html#AlternativeResources
