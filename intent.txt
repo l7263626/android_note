@@ -1,0 +1,2 @@
+前往不同package的activity
+Intent.setClassname("package name","activity class")
