@@ -1,0 +1,4 @@
+1.使用GoogleMap要先申請API key。到Google Console API申請Google Map Service(要先用Google帳號)
+2.開發GoogleMap會使用到的類別:
+GoogleMap：所有Map程式的進入點
+UiSettings：設定Map上的UI元件，例如放大縮小鈕，我的位置按鈕
