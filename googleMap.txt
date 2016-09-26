@@ -2,3 +2,18 @@
 2.開發GoogleMap會使用到的類別:
 GoogleMap：所有Map程式的進入點
 UiSettings：設定Map上的UI元件，例如放大縮小鈕，我的位置按鈕
+
+
+LocationManager: 得到你最新的位置
+   getBestProvider(Criteria, boolean)
+   Criteria: 準則
+   boolean: 設備是否可用
+   
+   getLastKnownLocation(String provider)
+   取得最後已知位置
+   
+   requestLocationUpdates(String provider, long 最小時間, float 最短距離, LocationListener)
+   
+   關閉畫面時，利用onStop()取消LocationListener的註冊
+   removeUpdates(LocationListener);
+   
